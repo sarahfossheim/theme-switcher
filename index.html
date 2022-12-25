@@ -24,7 +24,13 @@
   <script>
 
     const pressedButtonSelector = '[data-theme][aria-pressed="true"]';
-    const defaultTheme = 'green';
+    const prefersColorMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const themes = {
+      saved: localStorage.getItem('selected-theme'),
+      dark: 'blue', // Theme to load when prefers-colors-scheme = light
+      light: 'pink', // Theme to load when prefers-colors-scheme = dark
+      default: 'orange' // Theme to load when prefers-colors-scheme isn’t supported
+    };
 
     const applyTheme = (theme) => {
       const target = document.querySelector(`[data-theme="${theme}"]`);
@@ -43,21 +49,32 @@
         localStorage.setItem('selected-theme', theme);
       }
     }
+    
+    const setDefaultTheme = () => {
+      themes.default = (prefersColorMediaQuery.matches === true) ? themes.dark : themes.light
+    }
 
-    const setInitialTheme = () => {
-      const savedTheme = localStorage.getItem('selected-theme');
-      if(savedTheme && savedTheme !== defaultTheme) {
-        applyTheme(savedTheme);
+    const applyInitialTheme = () => {
+      if(themes.saved && themes.saved !== themes.default) {
+        applyTheme(themes.saved);
+        return;
       }
+      applyTheme(themes.default);
     };
 
-    setInitialTheme();
+    setDefaultTheme();
+    applyInitialTheme();
 
     const themeSwitcher = document.querySelector('.theme-switcher');
     const buttons = themeSwitcher.querySelectorAll('button');
 
     buttons.forEach((button) => {
       button.addEventListener('click', handleThemeSelection);
+    });
+    
+    prefersColorMediaQuery.addEventListener('change', () => {
+      setDefaultTheme();
+      applyInitialTheme();
     });
 
 
